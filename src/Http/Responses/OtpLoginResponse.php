@@ -3,24 +3,22 @@
 declare(strict_types=1);
 // src/Http/Responses/OtpLoginResponse.php
 
-namespace Saeidsharafi\FilamentOtpAuth\Http\Responses;
+namespace SaeidSharafi\FilamentOtpAuth\Http\Responses;
 
 use Filament\Facades\Filament;
-use Illuminate\Http\RedirectResponse;
-use Livewire\Features\SupportRedirects\Redirector;
 use Filament\Http\Responses\Auth\Contracts\LoginResponse as LoginResponseContract;
+use Illuminate\Http\RedirectResponse;
 
- // Use the correct contract
+// Use the correct contract
 
-class OtpLoginResponse implements LoginResponseContract
+final class OtpLoginResponse implements LoginResponseContract
 {
     /**
      * Create a new response instance.
      *
-     * @param  \Illuminate\Http\Request $request // Type hint might vary based on context passed
-     * @return RedirectResponse|Redirector
+     * @param  \Illuminate\Http\Request  $request  // Type hint might vary based on context passed
      */
-    public function toResponse($request): RedirectResponse|Redirector
+    public function toResponse($request): RedirectResponse
     {
         // This mimics Filament's default behavior.
         // Users could override this binding in their AppServiceProvider

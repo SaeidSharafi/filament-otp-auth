@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace SaeidSharafi\FilamentOtpAuth\Contracts;
 
-use Illuminate\Contracts\Routing\UrlRoutable; // For key retrieval
+use Illuminate\Contracts\Routing\UrlRoutable;
+use Illuminate\Notifications\Notification;
 
- // If using the trait is convenient
+// For key retrieval
+
+// If using the trait is convenient
 
 interface OtpNotifiable extends UrlRoutable
 {
     // Method(s) to provide routing information for notifications (mail, sms channels)
     // Example:
-    public function routeNotificationForMail($notification): ?string;
+    public function routeNotificationForMail(Notification $notification): ?string;
     // public function routeNotificationForVonage($notification): ?string;
     // public function routeNotificationFor<YourSmsChannel>($notification): ?string;
 

@@ -6,7 +6,7 @@ namespace SaeidSharafi\FilamentOtpAuth\Support;
 
 use Exception;
 
-class OtpGenerator
+final class OtpGenerator
 {
     public static function generate(): string
     {

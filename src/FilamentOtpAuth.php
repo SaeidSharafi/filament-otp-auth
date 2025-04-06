@@ -4,6 +4,4 @@ declare(strict_types=1);
 
 namespace SaeidSharafi\FilamentOtpAuth;
 
-class FilamentOtpAuth
-{
-}
+final class FilamentOtpAuth {}

@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace SaeidSharafi\FilamentOtpAuth\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
-class Otp extends Model
+final class Otp extends Model
 {
-    use \Illuminate\Database\Eloquent\Factories\HasFactory; // Optional: If you want factories
+    public $timestamps = false;
 
-    public $timestamps = false; // We only use created_at manually for resend logic
-    protected $guarded = []; // Allow mass assignment for simplicity here
+    protected $guarded = [];
 
     protected $casts = [
         'expires_at' => 'datetime',
@@ -25,19 +24,40 @@ class Otp extends Model
         return config('filament-otp-auth.otp_table', 'otps');
     }
 
-    // Scope to find valid OTPs
+    /**
+     * Scope to find valid OTPs.
+     *
+     * @param  Builder<Otp>  $query  The Eloquent query builder instance for the Otp model.
+     * @param  string  $identifier  The identifier (email/phone) to check.
+     * @param  string  $code  The OTP code to verify.
+     * @return Builder<Otp> The modified query builder instance.
+     */
     public function scopeValid(Builder $query, string $identifier, string $code): Builder
     {
         return $query->where('identifier', $identifier)
             ->where('code', $code)
             ->where('expires_at', '>', Carbon::now());
     }
+
+    /**
+     * Scope to check if any valid OTP exists for the identifier.
+     *
+     * @param  Builder<Otp>  $query  The Eloquent query builder instance for the Otp model.
+     * @param  string  $identifier  The identifier (email/phone) to check.
+     */
     public function scopeHasAnyValid(Builder $query, string $identifier): void
     {
         $query->where('identifier', $identifier)
             ->where('expires_at', '>', Carbon::now());
     }
-    // Scope to find the latest OTP for resend check
+
+    /**
+     * Scope to find the latest OTP for an identifier (useful for resend checks).
+     *
+     * @param  Builder<Otp>  $query  The Eloquent query builder instance for the Otp model.
+     * @param  string  $identifier  The identifier (email/phone).
+     * @return Builder<Otp> The modified query builder instance.
+     */
     public function scopeLatestFor(Builder $query, string $identifier): Builder
     {
         return $query->where('identifier', $identifier)->latest('created_at');

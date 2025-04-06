@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saeidsharafi\FilamentOtpAuth;
+namespace SaeidSharafi\FilamentOtpAuth;
 
 use Filament\Http\Responses\Auth\Contracts\LoginResponse;
-use Saeidsharafi\FilamentOtpAuth\Http\Responses\OtpLoginResponse;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
+use SaeidSharafi\FilamentOtpAuth\Http\Responses\OtpLoginResponse;
 use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class FilamentOtpAuthServiceProvider extends PackageServiceProvider
+final class FilamentOtpAuthServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'filament-otp-auth';
 
     public function configurePackage(Package $package): void
     {
         $package
-            ->name(static::$name)
+            ->name(self::$name)
             ->hasConfigFile() // Loads config/filament-otp-auth.php
             ->hasViews()      // Allows users to override views
             ->hasMigration('2024_01_01_000000_create_otps_table') // Finds the migration
@@ -32,6 +32,7 @@ class FilamentOtpAuthServiceProvider extends PackageServiceProvider
         //     Js::make('otp-login-script', __DIR__ . '/../resources/dist/js/script.js'), // Example asset path
         // ], $this->getAssetPackageName());
     }
+
     public function packageRegistered(): void
     {
         // OPTIONAL: Bind your custom response to the Filament contract.

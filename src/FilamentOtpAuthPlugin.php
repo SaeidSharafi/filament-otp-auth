@@ -2,16 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saeidsharafi\FilamentOtpAuth;
+namespace SaeidSharafi\FilamentOtpAuth;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use SaeidSharafi\FilamentOtpAuth\Filament\Pages\FilamentOtpAuth;
 
- // Import the page class
+// Import the page class
 
-class FilamentOtpAuthPlugin implements Plugin
+final class FilamentOtpAuthPlugin implements Plugin
 {
+    public static function make(): static
+    {
+        return app(self::class);
+    }
+
     public function getId(): string
     {
         return 'filament-otp-auth';
@@ -32,10 +37,5 @@ class FilamentOtpAuthPlugin implements Plugin
     public function boot(Panel $panel): void
     {
         // Perform any actions after the panel is booted
-    }
-
-    public static function make(): static
-    {
-        return app(static::class);
     }
 }
