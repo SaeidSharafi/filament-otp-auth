@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SaeidSharafi\FilamentOtpAuth\Contracts;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Routing\UrlRoutable; // For key retrieval
-use Illuminate\Notifications\Notifiable as NotifiableTrait; // If using the trait is convenient
+
+ // If using the trait is convenient
 
 interface OtpNotifiable extends UrlRoutable
 {

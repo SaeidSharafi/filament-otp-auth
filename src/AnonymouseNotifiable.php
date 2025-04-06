@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Saeidsharafi\FilamentOtpAuth;
 
 class AnonymouseNotifiable implements \SaeidSharafi\FilamentOtpAuth\Contracts\OtpNotifiable
 {
-
     use \Illuminate\Notifications\Notifiable;
 
     public function __construct(public string $identifierValue, public string $notifyType)
@@ -13,17 +14,17 @@ class AnonymouseNotifiable implements \SaeidSharafi\FilamentOtpAuth\Contracts\Ot
 
     public function routeNotificationForMail($notification): ?string
     {
-        return $this->notifyType === 'email' ? $this->identifierValue : null;
+        return 'email' === $this->notifyType ? $this->identifierValue : null;
     }
 
     public function routeNotificationForVonage($notification): ?string
     { // Example SMS channel
-        return $this->notifyType === 'phone' ? $this->identifierValue : null;
+        return 'phone' === $this->notifyType ? $this->identifierValue : null;
     }
 
     public function routeNotificationForTwilio($notification): ?string
     { // Example SMS channel
-        return $this->notifyType === 'phone' ? $this->identifierValue : null;
+        return 'phone' === $this->notifyType ? $this->identifierValue : null;
     }
 
     public function getKey()

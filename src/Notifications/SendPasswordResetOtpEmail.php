@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SaeidSharafi\FilamentOtpAuth\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -12,7 +14,9 @@ class SendPasswordResetOtpEmail extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public string $otp) {}
+    public function __construct(public string $otp)
+    {
+    }
 
     public function via(object $notifiable): array
     {
@@ -21,7 +25,7 @@ class SendPasswordResetOtpEmail extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject(Lang::get('filament-otp-auth::filament-otp-auth.notifications.password_reset_subject'))
             ->line(Lang::get('filament-otp-auth::filament-otp-auth.notifications.password_reset_line1'))
             ->line(Lang::get('filament-otp-auth::filament-otp-auth.notifications.password_reset_line2', ['otp' => $this->otp]))

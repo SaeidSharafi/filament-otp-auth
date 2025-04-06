@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SaeidSharafi\FilamentOtpAuth\Filament\Pages;
 
 use DanHarrin\LivewireRateLimiting\WithRateLimiting;
@@ -22,6 +24,7 @@ use Livewire\Attributes\Url;
 use SaeidSharafi\FilamentOtpAuth\Concerns\InteractsWithOtp;
 use SaeidSharafi\FilamentOtpAuth\Exceptions\OtpException;
 use Filament\Forms\Components\Section;
+use Exception;
 
 class FilamentOtpAuth extends SimplePage implements HasForms
 {
@@ -29,18 +32,18 @@ class FilamentOtpAuth extends SimplePage implements HasForms
     use WithRateLimiting;
 
     protected static ?string $navigationIcon = 'heroicon-o-key';
-    protected static string $view = 'filament-otp-auth::pages.filament-otp-auth';
+    protected static string $view            = 'filament-otp-auth::pages.filament-otp-auth';
 
     public array $data = [];
 
     #[Url(history: true, keep: true, except: '')] // Keep step in URL, don't keep identifier input value
-    public string $step = 'identifier';
+    public string $step         = 'identifier';
     public string $submitMethod = 'handleIdentifierSubmission';
 
     #[Url(history: true, keep: true)]
     public ?string $identifierValue = null; // Store the validated identifier between steps
 
-    protected ?string $heading = '';
+    protected ?string $heading    = '';
     protected ?string $subheading = '';
 
     public int $initialResendCooldownSeconds = 0; // For timer component
@@ -53,18 +56,18 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         }
 
         $validSteps = ['identifier', 'password', 'otp', 'forgot_password_request', 'forgot_password_otp', 'reset_password'];
-        if (!in_array($this->step, $validSteps)) {
+        if ( ! in_array($this->step, $validSteps)) {
             $this->goToStep('identifier', true); // Reset to initial step if URL step is invalid
             return;
         }
 
         // If navigating back/forward, ensure identifierValue is consistent with step
-        if (!in_array($this->step, ['identifier', 'forgot_password_request']) && empty($this->identifierValue)) {
+        if ( ! in_array($this->step, ['identifier', 'forgot_password_request']) && empty($this->identifierValue)) {
             // If we are on a step requiring an identifier, but it's missing, go back
             $this->goToStep('identifier', true);
             return;
         }
-        if (in_array($this->step, ['identifier', 'forgot_password_request']) && !empty($this->identifierValue)) {
+        if (in_array($this->step, ['identifier', 'forgot_password_request']) && ! empty($this->identifierValue)) {
             // If we land on an identifier entry step but already have one in URL, clear it maybe?
             // Or potentially pre-fill the form? Let's clear URL value for cleaner start.
             // $this->identifierValue = null; // Causes redirect loop if mount() is re-run by goToStep
@@ -72,12 +75,12 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         }
 
         $this->submitMethod = match($this->step) {
-            'password' => 'authenticateWithPassword',
-            'otp' => 'authenticateWithOtp',
+            'password'                => 'authenticateWithPassword',
+            'otp'                     => 'authenticateWithOtp',
             'forgot_password_request' => 'handleForgotPasswordRequest',
-            'forgot_password_otp' => 'handleForgotPasswordOtpVerification',
-            'reset_password' => 'handlePasswordReset',
-            default => 'handleIdentifierSubmission', // 'identifier' step
+            'forgot_password_otp'     => 'handleForgotPasswordOtpVerification',
+            'reset_password'          => 'handlePasswordReset',
+            default                   => 'handleIdentifierSubmission', // 'identifier' step
         };
 
         $this->updateHeadingsAndSubheading();
@@ -87,14 +90,14 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         $this->form->fill($formData);
 
         match($this->step) {
-            'password' => $this->dispatch('focus-input', 'data.password'),
-            'otp' => $this->dispatch('focus-input', 'data.otp'),
+            'password'            => $this->dispatch('focus-input', 'data.password'),
+            'otp'                 => $this->dispatch('focus-input', 'data.otp'),
             'forgot_password_otp' => $this->dispatch('focus-input', 'data.otp'),
-            'reset_password' => $this->dispatch('focus-input', 'data.new_password'),
-            default => $this->dispatch('focus-input', 'data.identifier'), // Focus identifier on relevant steps
+            'reset_password'      => $this->dispatch('focus-input', 'data.new_password'),
+            default               => $this->dispatch('focus-input', 'data.identifier'), // Focus identifier on relevant steps
         };
 
-        if (in_array($this->step, ['otp', 'forgot_password_otp']) && !empty($this->identifierValue)) {
+        if (in_array($this->step, ['otp', 'forgot_password_otp']) && ! empty($this->identifierValue)) {
             $this->dispatchStartTimerEvent();
         }
     }
@@ -103,28 +106,28 @@ class FilamentOtpAuth extends SimplePage implements HasForms
     {
         switch ($this->step) {
             case 'password':
-                $this->heading = __('filament-otp-auth::filament-otp-auth.heading_enter_password');
+                $this->heading    = __('filament-otp-auth::filament-otp-auth.heading_enter_password');
                 $this->subheading = __('filament-otp-auth::filament-otp-auth.subheading_entering_password', ['identifier' => $this->identifierValue]);
                 break;
             case 'otp':
-                $this->heading = __('filament-otp-auth::filament-otp-auth.heading_enter_otp');
+                $this->heading    = __('filament-otp-auth::filament-otp-auth.heading_enter_otp');
                 $this->subheading = __('filament-otp-auth::filament-otp-auth.subheading_otp_sent', ['identifier' => $this->identifierValue]);
                 break;
             case 'forgot_password_request':
-                $this->heading = __('filament-otp-auth::filament-otp-auth.heading_forgot_password');
+                $this->heading    = __('filament-otp-auth::filament-otp-auth.heading_forgot_password');
                 $this->subheading = __('filament-otp-auth::filament-otp-auth.subheading_forgot_password');
                 break;
             case 'forgot_password_otp':
-                $this->heading = __('filament-otp-auth::filament-otp-auth.heading_forgot_password_otp');
+                $this->heading    = __('filament-otp-auth::filament-otp-auth.heading_forgot_password_otp');
                 $this->subheading = __('filament-otp-auth::filament-otp-auth.subheading_forgot_password_otp_sent', ['identifier' => $this->identifierValue]);
                 break;
             case 'reset_password':
-                $this->heading = __('filament-otp-auth::filament-otp-auth.heading_reset_password');
+                $this->heading    = __('filament-otp-auth::filament-otp-auth.heading_reset_password');
                 $this->subheading = __('filament-otp-auth::filament-otp-auth.subheading_reset_password', ['identifier' => $this->identifierValue]);
                 break;
             case 'identifier':
             default:
-                $this->heading = __('filament-otp-auth::filament-otp-auth.heading');
+                $this->heading    = __('filament-otp-auth::filament-otp-auth.heading');
                 $this->subheading = '';
                 break;
         }
@@ -138,23 +141,25 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             TextInput::make('identifier')
                 ->label(__('filament-otp-auth::filament-otp-auth.form.identifier.label'))
                 ->placeholder(__('filament-otp-auth::filament-otp-auth.form.identifier.placeholder'))
-                ->required(fn() => in_array($this->step, ['identifier', 'forgot_password_request']))
+                ->required(fn () => in_array($this->step, ['identifier', 'forgot_password_request']))
                 ->validationAttribute(__('filament-otp-auth::filament-otp-auth.form.identifier.validation_attribute'))
                 ->extraInputAttributes(['autocomplete' => 'username webauthn'])
-                ->autofocus(fn() => in_array($this->step, ['identifier', 'forgot_password_request'])) // Autofocus here
-                ->hidden(fn() => !in_array($this->step, ['identifier', 'forgot_password_request']))
+                ->autofocus(fn () => in_array($this->step, ['identifier', 'forgot_password_request'])) // Autofocus here
+                ->hidden(fn () => ! in_array($this->step, ['identifier', 'forgot_password_request']))
                 ->key('identifier-input-field'),
 
             TextInput::make('password')
                 ->label(__('filament-panels::pages/auth/login.form.password.label'))
                 ->password()
-                ->required(fn() => $this->step === 'password')
-                ->hidden(fn() => $this->step !== 'password')
+                ->required(fn () => 'password' === $this->step)
+                ->hidden(fn () => 'password' !== $this->step)
                 ->helperText(function (): ?\Illuminate\Support\HtmlString {
-                    if ($this->step !== 'password') return null;
+                    if ('password' !== $this->step) {
+                        return null;
+                    }
                     $message = __('filament-otp-auth::filament-otp-auth.buttons.forgot_password_link_text');
                     return new \Illuminate\Support\HtmlString(
-                        '<a href="#" wire:click.prevent="goToForgotPasswordRequest" class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-500 dark:hover:text-primary-400">' . $message . '</a>'
+                        '<a href="#" wire:click.prevent="goToForgotPasswordRequest" class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-500 dark:hover:text-primary-400">'.$message.'</a>'
                     );
                 })
                 ->key('password-input-field'),
@@ -162,29 +167,29 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             TextInput::make('otp')
                 ->label(__('filament-otp-auth::filament-otp-auth.form.otp.label'))
                 ->placeholder(__('filament-otp-auth::filament-otp-auth.form.otp.placeholder'))
-                ->required(fn() => in_array($this->step, ['otp', 'forgot_password_otp']))
+                ->required(fn () => in_array($this->step, ['otp', 'forgot_password_otp']))
                 ->numeric()
                 ->length(config('filament-otp-auth.otp_length', 6))
                 ->validationAttribute(__('filament-otp-auth::filament-otp-auth.form.otp.validation_attribute'))
                 ->helperText(__('filament-otp-auth::filament-otp-auth.form.otp.helper_text'))
                 ->extraInputAttributes(['inputmode' => 'numeric', 'autocomplete' => 'one-time-code'])
-                ->hidden(fn() => !in_array($this->step, ['otp', 'forgot_password_otp']))
+                ->hidden(fn () => ! in_array($this->step, ['otp', 'forgot_password_otp']))
                 ->key('otp-input-field'),
 
             Section::make(__('filament-otp-auth::filament-otp-auth.form.reset_password_section_heading'))
-                ->hidden(fn() => $this->step !== 'reset_password')
+                ->hidden(fn () => 'reset_password' !== $this->step)
                 ->schema([
                     TextInput::make('new_password')
                         ->label(__('filament-otp-auth::filament-otp-auth.form.new_password.label'))
                         ->password()
-                        ->required(fn() => $this->step === 'reset_password')
+                        ->required(fn () => 'reset_password' === $this->step)
                         ->rule(Password::default())
                         ->autocomplete('new-password')
                         ->key('new-password-field'),
                     TextInput::make('new_password_confirmation')
                         ->label(__('filament-otp-auth::filament-otp-auth.form.new_password_confirmation.label'))
                         ->password()
-                        ->required(fn() => $this->step === 'reset_password')
+                        ->required(fn () => 'reset_password' === $this->step)
                         ->same('data.new_password')
                         ->autocomplete('new-password')
                         ->key('new-password-confirmation-field'),
@@ -214,7 +219,7 @@ class FilamentOtpAuth extends SimplePage implements HasForms
     {
         $submitMethod = match($this->step) {
             'forgot_password_otp' => 'handleForgotPasswordOtpVerification',
-            default => 'authenticateWithOtp',
+            default               => 'authenticateWithOtp',
         };
         return Action::make('submitOtp')
             ->label(__('filament-otp-auth::filament-otp-auth.buttons.submit_otp'))
@@ -239,7 +244,7 @@ class FilamentOtpAuth extends SimplePage implements HasForms
     {
         $actionMethod = match ($this->step) {
             'forgot_password_otp' => 'handleResendPasswordResetOtp',
-            default => 'handleResendOtp', // Corresponds to 'otp' step
+            default               => 'handleResendOtp', // Corresponds to 'otp' step
         };
 
         return Action::make('resendOtp')
@@ -248,7 +253,7 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             ->color('gray')
             ->action($actionMethod)
             ->extraAttributes(['wire:loading.attr' => 'disabled'])
-            ->visible(fn() => in_array($this->step, ['otp', 'forgot_password_otp']));
+            ->visible(fn () => in_array($this->step, ['otp', 'forgot_password_otp']));
     }
 
     protected function getBackToLoginAction(): Action
@@ -256,8 +261,8 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         return Action::make('backToLogin')
             ->label(__('filament-otp-auth::filament-otp-auth.buttons.back_to_login'))
             ->link()
-            ->action(fn() => $this->goToStep('identifier', true))
-            ->visible(fn() => in_array($this->step, ['password', 'forgot_password_request', 'forgot_password_otp', 'reset_password']));
+            ->action(fn () => $this->goToStep('identifier', true))
+            ->visible(fn () => in_array($this->step, ['password', 'forgot_password_request', 'forgot_password_otp', 'reset_password']));
     }
 
     protected function getFormActions(): array
@@ -308,7 +313,8 @@ class FilamentOtpAuth extends SimplePage implements HasForms
                     'seconds' => $exception->getHeaders()['Retry-After'],
                     'minutes' => ceil($exception->getHeaders()['Retry-After'] / 60),
                 ]))
-                ->body(array_key_exists('minutes', $exception->getHeaders()) ? // Check if 'minutes' key exists before accessing
+                ->body(
+                    array_key_exists('minutes', $exception->getHeaders()) ? // Check if 'minutes' key exists before accessing
                     __('filament-panels::pages/auth/login.notifications.throttled.body.minutes', ['minutes' => ceil($exception->getHeaders()['Retry-After'] / 60)]) :
                     __('filament-panels::pages/auth/login.notifications.throttled.body.seconds', ['seconds' => $exception->getHeaders()['Retry-After']])
                 )
@@ -318,26 +324,26 @@ class FilamentOtpAuth extends SimplePage implements HasForms
 
         try {
             $validatedData = $this->validate(['data.identifier' => ['required']]);
-            $identifier = data_get($validatedData, 'data.identifier');
+            $identifier    = data_get($validatedData, 'data.identifier');
 
-            if (!$identifier) {
+            if ( ! $identifier) {
                 throw ValidationException::withMessages(['data.identifier' => __('filament-otp-auth::filament-otp-auth.exceptions.unexpected_error')]);
             }
 
-            $identifierType = $this->getIdentifierType($identifier);
+            $identifierType   = $this->getIdentifierType($identifier);
             $identifierColumn = $this->getIdentifierColumn($identifierType);
-            if (!$identifierColumn) {
+            if ( ! $identifierColumn) {
                 throw ValidationException::withMessages(['data.identifier' => __('filament-otp-auth::filament-otp-auth.validation.invalid_identifier_format')]);
             }
 
             $authenticatableModel = $this->getAuthenticatableModel();
-            $user = $authenticatableModel::where($identifierColumn, $identifier)->first();
+            $user                 = $authenticatableModel::where($identifierColumn, $identifier)->first();
 
             $this->identifierValue = $identifier; // Store validated identifier
 
             if ($user) {
                 $passwordColumn = 'password'; // Assume default password column name
-                $hasPassword = !empty($user->{$passwordColumn}) && !Hash::check('', $user->{$passwordColumn}); // Check if password exists and is not just an empty hash
+                $hasPassword    = ! empty($user->{$passwordColumn}) && ! Hash::check('', $user->{$passwordColumn}); // Check if password exists and is not just an empty hash
 
                 if ($hasPassword) {
                     $this->goToStep('password');
@@ -358,9 +364,9 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         } catch (ValidationException $e) {
             $this->identifierValue = null; // Clear stored identifier on validation failure
             throw $e;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->identifierValue = null; // Clear stored identifier on general failure
-            Log::error("Identifier Submission failed: " . $e->getMessage());
+            Log::error("Identifier Submission failed: ".$e->getMessage());
             Notification::make()->danger()->title(__('filament-otp-auth::filament-otp-auth.exceptions.unexpected_error'))->send();
         }
     }
@@ -371,7 +377,7 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             $this->generateAndSendOtp($identifier, $user); // Pass user object if found
             $this->identifierValue = $identifier; // Ensure identifierValue is set
             $this->goToStep('otp');
-        } catch (OtpException | \Exception $e) {
+        } catch (OtpException | Exception $e) {
             // Don't transition if sending failed
             $this->identifierValue = null; // Clear potentially stored value
             $this->goToStep('identifier'); // Stay on or return to identifier step
@@ -383,7 +389,7 @@ class FilamentOtpAuth extends SimplePage implements HasForms
 
     public function authenticateWithPassword(): void
     {
-        if ($this->step !== 'password' || empty($this->identifierValue)) {
+        if ('password' !== $this->step || empty($this->identifierValue)) {
             $this->goToStep('identifier', true);
             return;
         }
@@ -392,23 +398,23 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             $this->rateLimit(5, 'otp-login-password');
         } catch (\Illuminate\Http\Exceptions\ThrottleRequestsException $exception) {
             Notification::make()->danger()
-                ->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [ /* ... throttled params ... */ ]))
+                ->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [/* ... throttled params ... */]))
                 ->send();
             return;
         }
 
         try {
             $validatedData = $this->validate(['data.password' => 'required']);
-            $password = data_get($validatedData, 'data.password');
+            $password      = data_get($validatedData, 'data.password');
 
-            $identifierType = $this->getIdentifierType($this->identifierValue);
+            $identifierType   = $this->getIdentifierType($this->identifierValue);
             $identifierColumn = $this->getIdentifierColumn($identifierType);
-            $credentials = [
+            $credentials      = [
                 $identifierColumn => $this->identifierValue,
                 'password'        => $password,
             ];
 
-            if (!Filament::auth()->attempt($credentials, true /* remember */)) {
+            if ( ! Filament::auth()->attempt($credentials, true /* remember */)) {
                 throw ValidationException::withMessages(['data.password' => __('filament-panels::pages/auth/login.messages.failed')]);
             }
 
@@ -417,15 +423,15 @@ class FilamentOtpAuth extends SimplePage implements HasForms
 
         } catch (ValidationException $e) {
             throw $e;
-        } catch (\Exception $e) {
-            Log::error("Password Authentication failed: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Password Authentication failed: ".$e->getMessage());
             Notification::make()->danger()->title(__('filament-otp-auth::filament-otp-auth.exceptions.unexpected_error'))->send();
         }
     }
 
     public function authenticateWithOtp(): void
     {
-        if ($this->step !== 'otp' || empty($this->identifierValue)) {
+        if ('otp' !== $this->step || empty($this->identifierValue)) {
             $this->goToStep('identifier', true);
             return;
         }
@@ -434,21 +440,21 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             $this->rateLimit(5, 'otp-login-verify');
         } catch (\Illuminate\Http\Exceptions\ThrottleRequestsException $exception) {
             Notification::make()->danger()
-                ->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [ /* ... throttled params ... */ ]))
+                ->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [/* ... throttled params ... */]))
                 ->send();
             return;
         }
 
         try {
-            $otpLength = config('filament-otp-auth.otp_length', 6);
+            $otpLength     = config('filament-otp-auth.otp_length', 6);
             $validatedData = $this->validate(['data.otp' => ['required', 'numeric', "digits:{$otpLength}"]]);
-            $otpCode = data_get($validatedData, 'data.otp');
+            $otpCode       = data_get($validatedData, 'data.otp');
 
             if ($this->verifyOtp($this->identifierValue, $otpCode)) {
-                $identifierType = $this->getIdentifierType($this->identifierValue);
-                $identifierColumn = $this->getIdentifierColumn($identifierType);
+                $identifierType       = $this->getIdentifierType($this->identifierValue);
+                $identifierColumn     = $this->getIdentifierColumn($identifierType);
                 $authenticatableModel = $this->getAuthenticatableModel();
-                $user = $authenticatableModel::where($identifierColumn, $this->identifierValue)->first();
+                $user                 = $authenticatableModel::where($identifierColumn, $this->identifierValue)->first();
 
                 if ($user) {
                     Filament::auth()->login($user, true /* remember */);
@@ -464,8 +470,8 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             }
         } catch (ValidationException $e) {
             throw $e;
-        } catch (\Exception $e) {
-            Log::error("OTP Authentication failed: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("OTP Authentication failed: ".$e->getMessage());
             Notification::make()->danger()->title(__('filament-otp-auth::filament-otp-auth.exceptions.unexpected_error'))->send();
         }
     }
@@ -475,24 +481,24 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         try {
             $this->rateLimit(5, 'otp-forgot-password-request');
         } catch (\Illuminate\Http\Exceptions\ThrottleRequestsException $exception) {
-            Notification::make()->danger()->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [ /* ... */ ]))->send();
+            Notification::make()->danger()->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [/* ... */]))->send();
             return;
         }
 
         try {
             $validatedData = $this->validate(['data.identifier' => ['required']]);
-            $identifier = data_get($validatedData, 'data.identifier');
+            $identifier    = data_get($validatedData, 'data.identifier');
 
-            $identifierType = $this->getIdentifierType($identifier);
+            $identifierType   = $this->getIdentifierType($identifier);
             $identifierColumn = $this->getIdentifierColumn($identifierType);
-            if (!$identifierColumn) {
+            if ( ! $identifierColumn) {
                 throw ValidationException::withMessages(['data.identifier' => __('filament-otp-auth::filament-otp-auth.validation.invalid_identifier_format')]);
             }
 
             $authenticatableModel = $this->getAuthenticatableModel();
-            $user = $authenticatableModel::where($identifierColumn, $identifier)->first();
+            $user                 = $authenticatableModel::where($identifierColumn, $identifier)->first();
 
-            if (!$user) {
+            if ( ! $user) {
                 Notification::make()->success()
                     ->title(__('filament-otp-auth::notifications.password_reset_link_sent_if_exists'))
                     ->send();
@@ -509,15 +515,15 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             throw $e;
         } catch (OtpException $e) {
             Notification::make()->danger()->title($e->getMessage())->send();
-        } catch (\Exception $e) {
-            Log::error("Forgot Password Request failed for {$identifier}: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Forgot Password Request failed for {$identifier}: ".$e->getMessage());
             Notification::make()->danger()->title(__('filament-otp-auth::exceptions.unexpected_error'))->send();
         }
     }
 
     public function handleForgotPasswordOtpVerification(): void
     {
-        if ($this->step !== 'forgot_password_otp' || empty($this->identifierValue)) {
+        if ('forgot_password_otp' !== $this->step || empty($this->identifierValue)) {
             $this->goToStep('identifier', true);
             return;
         }
@@ -525,14 +531,14 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         try {
             $this->rateLimit(5, 'otp-forgot-password-verify');
         } catch (\Illuminate\Http\Exceptions\ThrottleRequestsException $exception) {
-            Notification::make()->danger()->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [ /* ... */ ]))->send();
+            Notification::make()->danger()->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [/* ... */]))->send();
             return;
         }
 
         try {
-            $otpLength = config('filament-otp-auth.otp_length', 6);
+            $otpLength     = config('filament-otp-auth.otp_length', 6);
             $validatedData = $this->validate(['data.otp' => ['required', 'numeric', "digits:{$otpLength}"]]);
-            $otpCode = data_get($validatedData, 'data.otp');
+            $otpCode       = data_get($validatedData, 'data.otp');
 
             if ($this->verifyPasswordResetOtp($this->identifierValue, $otpCode)) {
                 $this->goToStep('reset_password');
@@ -541,15 +547,15 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             }
         } catch (ValidationException $e) {
             throw $e;
-        } catch (\Exception $e) {
-            Log::error("Forgot Password OTP verification failed for {$this->identifierValue}: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Forgot Password OTP verification failed for {$this->identifierValue}: ".$e->getMessage());
             Notification::make()->danger()->title(__('filament-otp-auth::exceptions.unexpected_error'))->send();
         }
     }
 
     public function handlePasswordReset(): void
     {
-        if ($this->step !== 'reset_password' || empty($this->identifierValue)) {
+        if ('reset_password' !== $this->step || empty($this->identifierValue)) {
             $this->goToStep('identifier', true);
             return;
         }
@@ -557,25 +563,25 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         try {
             $this->rateLimit(5, 'otp-reset-password-submit');
         } catch (\Illuminate\Http\Exceptions\ThrottleRequestsException $exception) {
-            Notification::make()->danger()->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [ /* ... */ ]))->send();
+            Notification::make()->danger()->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [/* ... */]))->send();
             return;
         }
 
         try {
             $validatedData = $this->validate([
-                'data.new_password' => ['required', Password::default(), 'confirmed'],
+                'data.new_password'              => ['required', Password::default(), 'confirmed'],
                 'data.new_password_confirmation' => ['required'],
             ]);
 
             $newPassword = data_get($validatedData, 'data.new_password');
 
-            $identifierType = $this->getIdentifierType($this->identifierValue);
-            $identifierColumn = $this->getIdentifierColumn($identifierType);
+            $identifierType       = $this->getIdentifierType($this->identifierValue);
+            $identifierColumn     = $this->getIdentifierColumn($identifierType);
             $authenticatableModel = $this->getAuthenticatableModel();
             /** @var Authenticatable|null $user */
             $user = $authenticatableModel::where($identifierColumn, $this->identifierValue)->first();
 
-            if (!$user) {
+            if ( ! $user) {
                 Log::error("User not found during password reset for {$this->identifierValue}");
                 Notification::make()->danger()->title(__('filament-otp-auth::exceptions.user_not_found'))->send();
                 $this->goToStep('identifier', true);
@@ -595,22 +601,22 @@ class FilamentOtpAuth extends SimplePage implements HasForms
 
         } catch (ValidationException $e) {
             throw $e;
-        } catch (\Exception $e) {
-            Log::error("Password reset failed for {$this->identifierValue}: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Password reset failed for {$this->identifierValue}: ".$e->getMessage());
             Notification::make()->danger()->title(__('filament-otp-auth::exceptions.unexpected_error'))->send();
         }
     }
 
     public function handleResendOtp(): void
     {
-        if ($this->step !== 'otp' || empty($this->identifierValue)) {
+        if ('otp' !== $this->step || empty($this->identifierValue)) {
             return; // Only for 'otp' (login/registration) step
         }
         try {
-            $identifierType = $this->getIdentifierType($this->identifierValue);
-            $identifierColumn = $this->getIdentifierColumn($identifierType);
+            $identifierType       = $this->getIdentifierType($this->identifierValue);
+            $identifierColumn     = $this->getIdentifierColumn($identifierType);
             $authenticatableModel = $this->getAuthenticatableModel();
-            $user = $authenticatableModel::where($identifierColumn, $this->identifierValue)->first();
+            $user                 = $authenticatableModel::where($identifierColumn, $this->identifierValue)->first();
 
             // Use the original method for login/registration OTP
             // Pass user object if found, allows generation even if just created
@@ -621,8 +627,8 @@ class FilamentOtpAuth extends SimplePage implements HasForms
             $this->dispatchStartTimerEvent();
         } catch (OtpException $e) {
             Notification::make()->danger()->title($e->getMessage())->send();
-        } catch (\Exception $e) {
-            Log::error("Resend Login OTP failed for {$this->identifierValue}: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Resend Login OTP failed for {$this->identifierValue}: ".$e->getMessage());
             Notification::make()->danger()
                 ->title(__('filament-otp-auth::exceptions.unexpected_error'))->send();
         }
@@ -630,17 +636,17 @@ class FilamentOtpAuth extends SimplePage implements HasForms
 
     public function handleResendPasswordResetOtp(): void
     {
-        if ($this->step !== 'forgot_password_otp' || empty($this->identifierValue)) {
+        if ('forgot_password_otp' !== $this->step || empty($this->identifierValue)) {
             return;
         }
 
         try {
-            $identifierType = $this->getIdentifierType($this->identifierValue);
-            $identifierColumn = $this->getIdentifierColumn($identifierType);
+            $identifierType       = $this->getIdentifierType($this->identifierValue);
+            $identifierColumn     = $this->getIdentifierColumn($identifierType);
             $authenticatableModel = $this->getAuthenticatableModel();
-            $user = $authenticatableModel::where($identifierColumn, $this->identifierValue)->first();
+            $user                 = $authenticatableModel::where($identifierColumn, $this->identifierValue)->first();
 
-            if (!$user) {
+            if ( ! $user) {
                 Log::warning("User not found for resending password reset OTP: {$this->identifierValue}");
                 Notification::make()->warning()->title(__('filament-otp-auth::exceptions.user_not_found'))->send();
                 return;
@@ -655,8 +661,8 @@ class FilamentOtpAuth extends SimplePage implements HasForms
 
         } catch (OtpException $e) {
             Notification::make()->danger()->title($e->getMessage())->send();
-        } catch (\Exception $e) {
-            Log::error("Resend Password Reset OTP failed for {$this->identifierValue}: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Resend Password Reset OTP failed for {$this->identifierValue}: ".$e->getMessage());
             Notification::make()->danger()
                 ->title(__('filament-otp-auth::exceptions.unexpected_error'))->send();
         }
@@ -675,13 +681,13 @@ class FilamentOtpAuth extends SimplePage implements HasForms
 
     public function calculateRemainingCooldown(): int
     {
-        if (!in_array($this->step, ['otp', 'forgot_password_otp']) || empty($this->identifierValue)) {
+        if ( ! in_array($this->step, ['otp', 'forgot_password_otp']) || empty($this->identifierValue)) {
             return 0;
         }
 
         $lastSentAt = $this->getLastOtpSentAt($this->identifierValue);
 
-        if (!$lastSentAt instanceof Carbon) {
+        if ( ! $lastSentAt instanceof Carbon) {
             return 0; // No record or not a Carbon instance
         }
 
@@ -691,7 +697,7 @@ class FilamentOtpAuth extends SimplePage implements HasForms
         }
 
         $cooldownExpiresAt = $lastSentAt->copy()->addSeconds($cooldownSeconds);
-        $now = now();
+        $now               = now();
 
         // Check if the expiration time is in the past
         if ($now->greaterThanOrEqualTo($cooldownExpiresAt)) {

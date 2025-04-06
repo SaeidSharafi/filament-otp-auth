@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Saeidsharafi\FilamentOtpAuth;
 
 use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Saeidsharafi\FilamentOtpAuth\Http\Responses\OtpLoginResponse;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelPackageTools\Package;
-
 
 class FilamentOtpAuthServiceProvider extends PackageServiceProvider
 {
@@ -41,10 +42,10 @@ class FilamentOtpAuthServiceProvider extends PackageServiceProvider
         // Filament's default response handler is used unless the user
         // explicitly overrides it themselves.
 
-         $this->app->bind(
-             LoginResponse::class,
-             OtpLoginResponse::class
-         );
+        $this->app->bind(
+            LoginResponse::class,
+            OtpLoginResponse::class
+        );
     }
     // Optional: Helper for asset package name
     // protected function getAssetPackageName(): ?string

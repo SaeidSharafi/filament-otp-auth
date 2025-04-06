@@ -114,7 +114,6 @@ Please review [our security policy](../../security/policy) on how to report secu
 ## Credits
 
 - [Saeid Sharafi](https://github.com/SaeidSharafi)
-- [All Contributors](../../contributors)
 
 ## License
 

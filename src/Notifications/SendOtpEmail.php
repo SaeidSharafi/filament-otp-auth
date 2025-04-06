@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SaeidSharafi\FilamentOtpAuth\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -12,7 +14,9 @@ class SendOtpEmail extends Notification implements ShouldQueue // Implement Shou
 {
     use Queueable;
 
-    public function __construct(public string $otp) {}
+    public function __construct(public string $otp)
+    {
+    }
 
     /**
      * Get the notification's delivery channels.
@@ -32,7 +36,7 @@ class SendOtpEmail extends Notification implements ShouldQueue // Implement Shou
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject(Lang::get('filament-otp-auth::filament-otp-auth.notifications.subject'))
             ->line(Lang::get('filament-otp-auth::filament-otp-auth.notifications.line', ['otp' => $this->otp]));
     }

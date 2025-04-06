@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SaeidSharafi\FilamentOtpAuth\Support;
+
+use Exception;
 
 class OtpGenerator
 {
@@ -18,9 +22,9 @@ class OtpGenerator
         try {
             // Use cryptographically secure random number generator
             return (string) random_int($min, $max);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback for environments where random_int is not available (rare)
-            return str_pad((string) mt_rand($min, $max), $length, '0', STR_PAD_LEFT);
+            return mb_str_pad((string) mt_rand($min, $max), $length, '0', STR_PAD_LEFT);
         }
     }
 }

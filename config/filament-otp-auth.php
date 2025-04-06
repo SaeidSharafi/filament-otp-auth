@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\User; // Make sure this points to your application's User model
 use SaeidSharafi\FilamentOtpAuth\Notifications\SendOtpEmail;
 use SaeidSharafi\FilamentOtpAuth\Notifications\SendPasswordResetOtpEmail;
@@ -29,7 +31,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'email_notification' => SendOtpEmail::class,
-    'sms_notification' => null, // Specify your SMS notification class for login/registration here if used
+    'sms_notification'   => null, // Specify your SMS notification class for login/registration here if used
 
     /*
     |--------------------------------------------------------------------------
@@ -37,15 +39,15 @@ return [
     |--------------------------------------------------------------------------
     */
     'password_reset_email_notification' => SendPasswordResetOtpEmail::class,
-    'password_reset_sms_notification' => null, // Specify your SMS notification class for password reset here if used
+    'password_reset_sms_notification'   => null, // Specify your SMS notification class for password reset here if used
 
     /*
     |--------------------------------------------------------------------------
     | OTP Configuration
     |--------------------------------------------------------------------------
     */
-    'otp_length' => 6,
-    'otp_expiry_minutes' => 5,
+    'otp_length'               => 6,
+    'otp_expiry_minutes'       => 5,
     'otp_resend_delay_seconds' => 60, // Cooldown in seconds before OTP can be resent
 
     /*
@@ -61,7 +63,7 @@ return [
     | Throttling Configuration
     |--------------------------------------------------------------------------
     */
-    'throttle_max_attempts' => 5,    // Max OTP requests (per identifier) within decay period
+    'throttle_max_attempts'  => 5,    // Max OTP requests (per identifier) within decay period
     'throttle_decay_minutes' => 1,     // Time window (in minutes) for max attempts
 
     /*

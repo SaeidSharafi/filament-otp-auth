@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 // src/Http/Responses/OtpLoginResponse.php
 
 namespace Saeidsharafi\FilamentOtpAuth\Http\Responses;
@@ -6,7 +8,9 @@ namespace Saeidsharafi\FilamentOtpAuth\Http\Responses;
 use Filament\Facades\Filament;
 use Illuminate\Http\RedirectResponse;
 use Livewire\Features\SupportRedirects\Redirector;
-use Filament\Http\Responses\Auth\Contracts\LoginResponse as LoginResponseContract; // Use the correct contract
+use Filament\Http\Responses\Auth\Contracts\LoginResponse as LoginResponseContract;
+
+ // Use the correct contract
 
 class OtpLoginResponse implements LoginResponseContract
 {
@@ -14,7 +18,7 @@ class OtpLoginResponse implements LoginResponseContract
      * Create a new response instance.
      *
      * @param  \Illuminate\Http\Request $request // Type hint might vary based on context passed
-     * @return \Illuminate\Http\RedirectResponse|\Livewire\Features\SupportRedirects\Redirector
+     * @return RedirectResponse|Redirector
      */
     public function toResponse($request): RedirectResponse|Redirector
     {

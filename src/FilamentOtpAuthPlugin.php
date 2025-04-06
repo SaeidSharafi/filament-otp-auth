@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Saeidsharafi\FilamentOtpAuth;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
-use SaeidSharafi\FilamentOtpAuth\Filament\Pages\FilamentOtpAuth; // Import the page class
+use SaeidSharafi\FilamentOtpAuth\Filament\Pages\FilamentOtpAuth;
+
+ // Import the page class
 
 class FilamentOtpAuthPlugin implements Plugin
 {
